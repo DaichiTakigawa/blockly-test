@@ -1,8 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react';
 import clsx from 'clsx';
-import * as Blockly from 'blockly';
+import * as Blockly from 'blockly/core';
 import { javascriptGenerator } from 'blockly/javascript';
 import * as En from 'blockly/msg/en';
+import { useDispatch } from 'react-redux';
+import { type AppDispatch } from '../../store';
+import { saveWorkspace } from '../../ducks/blockly';
 
 const toolbox = {
   kind: 'flyoutToolbox',
@@ -41,6 +45,7 @@ const theme = Blockly.Theme.defineTheme('bionario', {
 const BlocklyWorkspace: React.FC = () => {
   const blocklyDivRef = React.useRef<HTMLDivElement>(null);
   const isBlocklyInitializedRef = React.useRef(false);
+  const dispatch: AppDispatch = useDispatch();
 
   React.useEffect(() => {
     const currentBlocklyRef = blocklyDivRef.current;
@@ -49,11 +54,6 @@ const BlocklyWorkspace: React.FC = () => {
     }
     isBlocklyInitializedRef.current = true;
     Blockly.setLocale(En);
-    javascriptGenerator['result_variable'] = function(block: any) {
-      console.log({ block });
-      const code = ';\n';
-      return code;
-    };
     Blockly.defineBlocksWithJsonArray([
       {
         type: 'result_variable',
@@ -61,7 +61,7 @@ const BlocklyWorkspace: React.FC = () => {
         args0: [
           {
             type: 'input_value',
-            name: 'result',
+            name: 'value',
             check: 'Number',
           },
         ],
@@ -70,7 +70,16 @@ const BlocklyWorkspace: React.FC = () => {
         colour: 330,
       },
     ]);
-    Blockly.inject(currentBlocklyRef, {
+    javascriptGenerator['result_variable'] = function(block: any) {
+      const value = javascriptGenerator.valueToCode(
+        block,
+        'value',
+        javascriptGenerator.ORDER_ATOMIC
+      );
+      const code = `result = ${value};\n`;
+      return code;
+    };
+    const ws = Blockly.inject(currentBlocklyRef, {
       grid: {
         spacing: 20,
         length: 2,
@@ -98,6 +107,25 @@ const BlocklyWorkspace: React.FC = () => {
       theme: theme,
       toolbox: toolbox,
     });
+    const updateWorkspace = () => {
+      const workspaceJson = Blockly.serialization.workspaces.save(ws);
+      const code = javascriptGenerator.workspaceToCode(ws);
+      dispatch(
+        saveWorkspace({
+          workspace: workspaceJson,
+          code: `let result = 0;\n${code}`,
+        })
+      );
+    };
+    ws.addChangeListener(updateWorkspace);
+    const workspaceJson = Blockly.serialization.workspaces.save(ws);
+    const code = javascriptGenerator.workspaceToCode(ws);
+    dispatch(
+      saveWorkspace({
+        workspace: workspaceJson,
+        code: `let result = 0;\n${code}`,
+      })
+    );
   }, [blocklyDivRef.current, isBlocklyInitializedRef.current]);
 
   return <div ref={blocklyDivRef} className={clsx('h-96')} />;

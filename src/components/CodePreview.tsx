@@ -1,7 +1,10 @@
 import * as React from 'react';
 import clsx from 'clsx';
+import { useSelector } from 'react-redux';
+import { selectCode } from '../ducks/blockly';
 
 const CodePreview: React.FC = () => {
+  const code = useSelector(selectCode);
   return (
     <div
       className={clsx(
@@ -11,10 +14,11 @@ const CodePreview: React.FC = () => {
         'rounded-md',
         'border-base-content',
         'border-[1px]',
-        'border-opacity-80'
+        'border-opacity-80',
+        'whitespace-pre-wrap'
       )}
     >
-      <p>var result = 0;</p>
+      <p>{code}</p>
     </div>
   );
 };
