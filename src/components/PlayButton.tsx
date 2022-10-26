@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { useDispatch, useSelector } from 'react-redux';
 import { type AppDispatch } from '../store';
 import { selectCode, setResult } from '../ducks/blockly';
+import { simulator } from '../modles';
 
 const PlayButton: React.FC = () => {
   const code = useSelector(selectCode);
@@ -12,13 +13,9 @@ const PlayButton: React.FC = () => {
     if (code === undefined) {
       return;
     }
-    console.log({ code });
-    const tmpCode = `${code}\nresult;\n`;
-    let result = '';
-    try {
-      result = eval(tmpCode);
-    } catch (e) {
-      console.error(e);
+    const result = simulator.simulate(code);
+    if (result === undefined) {
+      return;
     }
     dispatch(setResult({ result: `result = ${result}` }));
   }, [dispatch, code]);

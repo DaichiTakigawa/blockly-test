@@ -2,7 +2,7 @@ import * as React from 'react';
 import clsx from 'clsx';
 import * as Blockly from 'blockly';
 import * as Ja from 'blockly/msg/ja';
-import { BlocklyWorkspace } from './blockly';
+import { BlocklyWorkspace } from '../containers/blockly';
 
 Blockly.setLocale(Ja);
 

@@ -3,6 +3,7 @@ export type State = {
   workspace?: {
     [key: string]: any;
   };
+  definition?: string;
   code?: string;
   result?: string;
 };

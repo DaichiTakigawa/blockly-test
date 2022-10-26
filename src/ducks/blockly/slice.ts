@@ -12,9 +12,14 @@ export const blocklySlice = createSlice({
   reducers: {
     saveWorkspace: (
       state: State,
-      action: PayloadAction<{ workspace: { [key: string]: any }; code: string }>
+      action: PayloadAction<{
+        workspace: { [key: string]: any };
+        definition: string;
+        code: string;
+      }>
     ) => {
       state.workspace = action.payload.workspace;
+      state.definition = action.payload.definition;
       state.code = action.payload.code;
     },
     setResult: (state: State, action: PayloadAction<{ result: string }>) => {

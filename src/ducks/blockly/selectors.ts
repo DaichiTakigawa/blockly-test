@@ -20,6 +20,17 @@ export const selectCode = createSelector([getCodeDepends], (code) => {
   return code;
 });
 
+function getDefinitionDepends(state: AppState) {
+  return state.blockly.definition;
+}
+
+export const selectDefinition = createSelector(
+  [getDefinitionDepends],
+  (definition) => {
+    return definition;
+  }
+);
+
 function getResultDepends(state: AppState) {
   return state.blockly.result;
 }

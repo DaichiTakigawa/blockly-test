@@ -1,10 +1,10 @@
 import * as React from 'react';
 import clsx from 'clsx';
 import { useSelector } from 'react-redux';
-import { selectCode } from '../ducks/blockly';
+import { selectDefinition } from '../ducks/blockly';
 
 const CodePreview: React.FC = () => {
-  const code = useSelector(selectCode);
+  const definition = useSelector(selectDefinition);
   return (
     <div
       className={clsx(
@@ -18,7 +18,7 @@ const CodePreview: React.FC = () => {
         'whitespace-pre-wrap'
       )}
     >
-      <p>{code}</p>
+      <p>{definition}</p>
     </div>
   );
 };
