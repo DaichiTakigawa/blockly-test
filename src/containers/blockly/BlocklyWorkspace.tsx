@@ -23,6 +23,10 @@ const ConnectedBlocklyWorkspace: React.FC = () => {
         base: Blockly.Themes.Zelos,
         componentStyles: {
           workspaceBackgroundColour: 'black',
+          toolboxBackgroundColour: '#ddddddE6',
+          toolboxForegroundColour: 'black',
+          scrollbarColour: '#00000000',
+          scrollbarOpacity: 0,
         },
       });
     }
@@ -32,34 +36,63 @@ const ConnectedBlocklyWorkspace: React.FC = () => {
   const toolbox = React.useMemo(() => {
     const contents = [
       {
-        kind: 'block',
-        type: 'controls_if',
-      },
-      {
-        kind: 'block',
-        type: 'logic_compare',
-      },
-      {
-        kind: 'block',
-        type: 'math_arithmetic',
-      },
-      {
-        kind: 'block',
-        type: 'math_number',
-      },
-      {
-        kind: 'block',
-        type: 'result_variable',
+        kind: 'category',
+        name: 'logic',
+        colour: 'red',
+        contents: [
+          {
+            kind: 'block',
+            type: 'controls_if',
+          },
+          {
+            kind: 'block',
+            type: 'logic_compare',
+          },
+          {
+            kind: 'block',
+            type: 'math_arithmetic',
+          },
+          {
+            kind: 'block',
+            type: 'math_number',
+          },
+        ],
       },
     ];
+    const variableContents = [];
     for (const variable of Object.values(simulator.graph)) {
-      contents.push({
+      variableContents.push({
         kind: 'block',
         type: variable.id,
       });
     }
+    variableContents.push({
+      kind: 'block',
+      type: 'select_variable',
+    });
+    contents.push({
+      kind: 'category',
+      name: 'variable',
+      colour: 'green',
+      contents: variableContents,
+    });
+    contents.push({
+      kind: 'category',
+      name: 'result',
+      colour: 'blue',
+      contents: [
+        {
+          kind: 'block',
+          type: 'result_variable',
+        },
+        {
+          kind: 'block',
+          type: 'result_variable',
+        },
+      ],
+    });
     const toolbox = {
-      kind: 'flyoutToolbox',
+      kind: 'categoryToolbox',
       contents: contents,
     };
     return toolbox;
@@ -80,6 +113,33 @@ const ConnectedBlocklyWorkspace: React.FC = () => {
         previousStatement: null,
         nextStatement: null,
         colour: 330,
+      },
+      {
+        type: 'select_variable',
+        message0: '%1 %2',
+        args0: [
+          {
+            type: 'field_dropdown',
+            name: 'variable_name',
+            options: [
+              ['variable1', '1'],
+              ['variable2', '2'],
+              ['variable3', '3'],
+            ],
+          },
+          {
+            type: 'field_dropdown',
+            name: 'time',
+            options: [
+              ['t', 't'],
+              ['t-1', 't-1'],
+            ],
+          },
+        ],
+        output: 'Number',
+        colour: 330,
+        tooltip: '',
+        helpUrl: '',
       },
     ];
     for (const variable of Object.values(simulator.graph)) {
@@ -103,10 +163,7 @@ const ConnectedBlocklyWorkspace: React.FC = () => {
           snap: false,
         },
         move: {
-          scrollbars: {
-            horizontal: true,
-            vertical: true,
-          },
+          scrollbars: false,
           drag: true,
           wheel: true,
         },
@@ -131,6 +188,9 @@ const ConnectedBlocklyWorkspace: React.FC = () => {
       saveWorkspace(ws: Blockly.WorkspaceSvg) {
         const workspaceJson = Blockly.serialization.workspaces.save(ws);
         // generate definition
+        javascriptGenerator['select_variable'] = () => {
+          return ['', javascriptGenerator.ORDER_ATOMIC];
+        };
         javascriptGenerator['result_variable'] = (block: any) => {
           const value = javascriptGenerator.valueToCode(
             block,
@@ -142,7 +202,7 @@ const ConnectedBlocklyWorkspace: React.FC = () => {
         };
         for (const variable of Object.values(simulator.graph)) {
           javascriptGenerator[variable.id] = () => {
-            return [variable.name, javascriptGenerator.ORDER_NONE];
+            return [variable.name, javascriptGenerator.ORDER_ATOMIC];
           };
         }
         const definition = javascriptGenerator.workspaceToCode(ws);
